@@ -6,7 +6,9 @@
 // @author         raulchen
 // @description    
 // @include     http*://github.com/*/*/graphs/contributors
-// @run-at         document-ready
+// @installUrl		https://raw.githubusercontent.com/raulchen/MyUserscripts/master/GithubCodeStats.user.js
+// @updateUrl		https://raw.githubusercontent.com/raulchen/MyUserscripts/master/GithubCodeStats.user.js
+// @run-at         document-end
 // ==/UserScript==
 
 var codeStats=function(){
