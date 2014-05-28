@@ -1,7 +1,7 @@
 // ==UserScript==
 // @id             GithubCodeStats
 // @name           Github Code Stats
-// @version        1.0
+// @version        1.1
 // @namespace      
 // @author         raulchen
 // @description    
