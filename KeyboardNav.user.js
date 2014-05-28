@@ -5,9 +5,8 @@
 // @namespace      
 // @author         raulchen
 // @description    
-// @namespace   http://userscripts.org/scripts/show/177025
-// @updateUrl   http://userscripts.org/scripts/source/177025.meta.js
-// @installUrl  http://userscripts.org/scripts/source/177025.meta.js
+// @updateUrl   https://github.com/raulchen/MyUserscripts/raw/master/KeyboardNav.user.js
+// @installUrl  https://github.com/raulchen/MyUserscripts/raw/master/KeyboardNav.user.js
 // @include     *
 // @exclude		http://note.youdao.com/*
 // @exclude		http*://mail.google.com/*
