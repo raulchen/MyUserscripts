@@ -1,7 +1,7 @@
 // ==UserScript==
 // @id             KeyboardNav
 // @name           KeyboardNav
-// @version        1.3
+// @version        1.4
 // @namespace      
 // @author         raulchen
 // @description    
@@ -55,7 +55,7 @@
 		if(event.keyCode!=32){
 			return;
 		}
-		if(event.target.getAttribuite('contenteditable')=='true'){
+		if(event.target.contentEditable=='true'){
 			return;
 		}
 		if(event.target.localName!=null){
