@@ -4,9 +4,9 @@
 // @version     1.1
 // @date        2013-07-29
 // @description   Based on http://userscripts.org/scripts/source/38066.user.js
-// @namespace   https://raw.githubusercontent.com/raulchen/MyUserscripts/master/SuperNextPageCE.js
-// @updateUrl   https://raw.githubusercontent.com/raulchen/MyUserscripts/master/SuperNextPageCE.js
-// @installUrl  https://raw.githubusercontent.com/raulchen/MyUserscripts/master/SuperNextPageCE.js
+// @namespace   https://raw.githubusercontent.com/raulchen/MyUserscripts/master/SuperNextPageCE.user.js
+// @updateUrl   https://raw.githubusercontent.com/raulchen/MyUserscripts/master/SuperNextPageCE.user.js
+// @installUrl  https://raw.githubusercontent.com/raulchen/MyUserscripts/master/SuperNextPageCE.user.js
 // @include     http://*
 // @include     https://*
 
