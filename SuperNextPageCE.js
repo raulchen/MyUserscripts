@@ -1,18 +1,17 @@
-// This is a greasemonkey script, for use with the Firefox extension Greasemonkey. More info: http://greasemonkey.mozdev.org/
-//
 // ==UserScript==
 // @name      Super Next Page CUSTOM EDITION
 // @author      Godeye / raulchen
-// @version     1.0
+// @version     1.1
 // @date        2013-07-29
 // @description   Based on http://userscripts.org/scripts/source/38066.user.js
-// @namespace   http://userscripts.org/scripts/show/174492
-// @updateUrl   http://userscripts.org/scripts/source/174492.meta.js
-// @installUrl  http://userscripts.org/scripts/source/174492.meta.js
+// @namespace   https://raw.githubusercontent.com/raulchen/MyUserscripts/master/SuperNextPageCE.js
+// @updateUrl   https://raw.githubusercontent.com/raulchen/MyUserscripts/master/SuperNextPageCE.js
+// @installUrl  https://raw.githubusercontent.com/raulchen/MyUserscripts/master/SuperNextPageCE.js
 // @include     http://*
 // @include     https://*
 
 // @exclude     http://mail.163.com/*
+// 
 // ==/UserScript==
 
 /*
@@ -34,7 +33,15 @@ historyenable 是否开启前进后退修正
 
 (function() {
 	if (window != top) if(checkInIframe()) return; // 如果已经在框架中了则退出，防止生成无限多个嵌套。。。
-	
+		
+	// 本窗口是否在预取框架内
+	function checkInIframe(){
+	var r = false;
+	try{
+		r = parent.document.getElementById('pfnext_if').src == location;
+	} catch(e){}
+	return r;
+	}
 	
 // ==================================================================
 	// 参数设置
@@ -50,189 +57,6 @@ historyenable 是否开启前进后退修正
 	var intervaltime = 50;  // 地址栏变化监听函数间隔,毫秒
 	
 // ==================================================================
-
-
-	
-	// 自定义图标颜色
-	var COLOR = {  
-	on: '#0f0',
-	off: '#ccc',
-	loading:'#ff0',
-	textdone: '#0ff',
-	done: '#00f',
-	not_found: '#0a0',
-	error: '#f0f'
-	}
-	// 自定义图标文字
-	var TEXT = (navigator.language == "zh-CN") ? {  // for chinese
-	prefetching:'正在预取...',
-	textdone:'已预取文字...',
-	textdonetip:'此页面文字已被预取，正在预取图片等...',
-	done:'已完全预取',
-	donetip:'此页面已被完全预取',
-	error:'预读错误:',
-	errortip:'此页面不能读取'
-	} : { // for other language
-	prefetching:'Prefetching...',
-	textdone:'Text Prefetched...',
-	textdonetip:'Text Prefetched...，Now Prefetching Image...',
-	done:'Prefetching Complete',
-	donetip:'This page has been Prefetched',
-	error:'Eorror Occurred:',
-	errortip:'Can not Prefetching'
-	}
-	
-/*
- * ***************************************** 图标显示部分
- * ****************************************
- */
-	var IconHelper = function() {
-	this.state = GM_getValue('STATE');
-	var self = this
-
-	var toggle = function() {self.stateToggle()}
-	this.toggle = toggle
-
-	this.initIcon()
-	this.initHelp()
-	this.icon.addEventListener("mouseover",function(){self.viewHelp()}, true)
-	}
-
-	IconHelper.prototype.initHelp = function() {
-	var helpDiv = document.createElement('div')
-	helpDiv.setAttribute('id', 'nextpage_help')
-	helpDiv.setAttribute('style', 'padding:5px;position:fixed;' +
-			 'top:-200px;right:3px;font-size:10px;' +
-			 'background:#fff;color:#000;border:1px solid #ccc;' +
-			 'z-index:256;text-align:left;font-weight:normal;' +
-			 'line-height:120%;font-family:verdana;')
-
-	var toggleDiv = document.createElement('div')
-	toggleDiv.setAttribute('style', 'margin:0 0 0 50px;text-align:right;')
-	var a = document.createElement('a')
-	a.setAttribute('class', 'nextpage_link')
-	a.innerHTML = 'on/off'
-	a.href = 'javascript:void(0)'
-	var self = this
-	var toggle = function() {
-		self.stateToggle()
-		helpDiv.style.top = '-200px'
-	}
-	a.addEventListener('click', toggle, false)
-	toggleDiv.appendChild(a)
-
-	var s = '<div style="width:100px; float:left;">'
-	for (var i in COLOR) {
-		s += '<div style="float:left;width:1em;height:1em;' +
-		'margin:0 3px;background-color:' + COLOR[i] + ';' +
-		'"></div><div style="margin:0 3px">' + i + '</div>'
-	}
-	s += '</div>'
-	var colorDiv = document.createElement('div')
-	colorDiv.innerHTML = s
-	helpDiv.appendChild(toggleDiv)
-	helpDiv.appendChild(colorDiv)
-	
-
-	var versionDiv = document.createElement('div')
-	versionDiv.setAttribute('style', 'clear:both;')
-	versionDiv.innerHTML = '<a href="' + URL +
-		'">Super Next Page</a> ' + VERSION
-	helpDiv.appendChild(versionDiv)
-	document.body.appendChild(helpDiv)
-
-	var proc = function(e) {
-		var c_style = document.defaultView.getComputedStyle(helpDiv, '')
-		var s = ['top', 'left', 'height', 'width'].map(function(i) {
-		return parseInt(c_style.getPropertyValue(i)) })
-		if (e.clientX < s[1] || e.clientX > (s[1] + s[3] + 11) ||
-		e.clientY < s[0] || e.clientY > (s[0] + s[2] + 11)) {
-			helpDiv.style.top = '-200px'
-		}
-	}
-	helpDiv.addEventListener('mouseout', proc, false)
-	this.helpLayer = helpDiv
-	}
-
-	IconHelper.prototype.viewHelp = function() {
-	this.helpLayer.style.top = '3px'
-	}
-
-
-
-	IconHelper.prototype.stateToggle = function() {
-	if (this.state == 'enable') {
-		this.disable()
-	}
-	else {
-		this.enable()
-	}
-	}
-
-	IconHelper.prototype.enable = function() {
-	this.state = 'enable'
-	GM_setValue('STATE','enable');
-	this.icon.style.background = COLOR['on']
-	this.icon.style.opacity = 1
-	}
-
-	IconHelper.prototype.disable = function() {
-	this.state = 'disable'
-	GM_setValue('STATE','disable');
-	this.icon.style.background = COLOR['off']
-	this.icon.style.opacity = 0.5
-	}
-
-
-
-
-
-
-
-
-	IconHelper.prototype.initIcon = function() {
-	var div = document.createElement("div")
-	div.setAttribute('id', 'nextpage_icon')
-	with (div.style) {
-		fontSize   = '12px'
-		position   = 'fixed'
-		top        = '3px'
-		right      = '3px'
-		background = COLOR['on']
-		color      = '#fff'
-		width = '10px'
-		height = '10px'
-		zIndex = '255'
-		if (this.state != 'enable') {
-		background = COLOR['off']
-		}
-	}
-	document.body.appendChild(div)
-	this.icon = div
-	}
-
-
-	IconHelper.prototype.error = function() {
-	this.icon.style.background = COLOR['error']
-	}
-
-	IconHelper.prototype.set = function(s) {
-	if (this.state == 'enable') {
-		this.icon.style.background = COLOR[s]
-	}
-	}
-	
-	IconHelper.prototype.remove = function() {
-	var s = document.getElementsByTagId('nextpage_help');
-	if (s) s.parentNode.removeChild(s); 
-	var t = document.getElementsByTagId('nextpage_icon');
-	if (t) t.parentNode.removeChild(t); 
-	}
-	
-	
-	ap = (iconenable) ? (new IconHelper()):'';
-	
-
 
 /*
  * ***************************************** 判断下一页部分
@@ -254,7 +78,7 @@ historyenable 是否开启前进后退修正
 
 	var previous = {};
 	// 下一页链接里的文字
-	next.texts      = [ 'next',
+	next.texts = [ 'next',
 			'next page',
 			'old',
 			'older',
@@ -323,13 +147,6 @@ historyenable 是否开启前进后退修正
 				"<<": 2000,
 				"«": 2000
 			}
-
-	// 取得自定义关键词
-	getCustom(next, "next");
-	getCustom(previous, "previous");
-	// 注册脚本菜单
-	registerMenu("next");
-	registerMenu("previous");
 	
 	// 最后添加一些论坛使用的翻页符号
 	next.texts.push(">>");
@@ -345,48 +162,6 @@ historyenable 是否开启前进后退修正
 	var preRegexp  = '(^\\s*(?:[<‹«]*|[>›»]*|[\\(\\[『「［【]?)\\s*)';
 	var nextRegexp = '(\\s*(?:[>›»]*|[\\)\\]』」］】]?)\\s*$)';
 
-	// 取得并设置自定义关键词
-	function getCustom(aObj, key) {
-	var site, re;
-	var cKeyWords = GM_getValue("custom_" + key, "");
-	var words = cKeyWords.split(/,|，/);
-	for each (var w in words) {
-	site = null;
-	if (/^\s*{\s*(\S*?)\s*}(.*)$/.test(w)) {
-		site = RegExp.$1;
-		w = RegExp.$2;
-		site = site.replace(/[\/\?\.\(\)\+\-\[\]\$]/g, "\\$&").replace(/\*/g, "\.*");
-	}
-	w = w.replace(/\\/g, "\\").replace(/^\s+|\s+$/g, "");
-	if (w) {
-		if (site) {
-		re = eval('/' + site + '/i');
-		if (re.test(currenturl))
-		aObj.texts.push(w);
-		}
-		else
-		aObj.texts.push(w);
-	}
-	}
-	}
-
-	// 注册菜单
-	function registerMenu(key) {
-	if (navigator.language == "zh-CN") {
-	var word = key == "next" ? "下一页" : "上一页";
-	GM_registerMenuCommand("Next Page " + word + "关键词", function(){setCustom(key, word)});
-	}
-	else {
-	GM_registerMenuCommand("Next Page custom_" + key, function(){setCustom(key, key)});
-	}
-	}
-
-	// 设置新的关键词
-	function setCustom(k, w) {
-	var text = navigator.language == "zh-CN" ? "请输入“"+w+"”的关键词，以“,”号分隔开。" : "Please enter the "+w+" page key-words, split with ','.";
-	var result = prompt(text, GM_getValue("custom_" + k, ""));
-	if (result != null) GM_setValue("custom_" + k, result);
-	}
 
 	function checkLinks() {
 	var link, text, ldnc, lnc, ldpc, lpc, num, digChked, digStart, linkNumber, found;
@@ -758,266 +533,6 @@ historyenable 是否开启前进后退修正
 		} else {
 		openLink(next.link);
 		}
-	}
-	}
-
-
-
-
-
-
-	
-/*
- * *****************************************************************************************
- * 预取下一页部分
- * *****************************************************************************************
- */
-	// 本窗口是否在预取框架内
-	function checkInIframe(){
-	var r = false;
-	try{
-		r = parent.document.getElementById('pfnext_if').src == location;
-	} catch(e){}
-	return r;
-	}
-	
-	// 获取距页面底部最近的元素的top值
-	function getTopest(xpresult){
-	var topest=0, tmp;
-	for (var i=0;i<xpresult.snapshotLength;i++){
-		tmp = getTop(xpresult.snapshotItem(i));
-		topest = topest > tmp?topest:tmp;
-	}
-	return topest;
-	}
-
-	
-	// 获取元素相对页面顶部的纵坐标
-	function getTop(e){
-	var offset = e.offsetTop;
-	if (e.offsetParent != null) 
-	offset += getTop(e.offsetParent);
-	return offset;
-	}
-	
-	
-	function onIframeLoaded(event,reg,status,statusTip,borderColor){
-	var thishref = String(event.target.location);
-	
-	
-	var nexthref = String(next.link.href);
-	
-	if (nexthref.replace(/\/$/, '') == thishref.replace(/\/$/, '')) {
-	
-		if (StatusInTitle) {
-		// 将预取情况显示在标题中。
-		document.title = document.title.replace(/【.*】/,'【' + status + '】');
-		}
-		
-		// try {
-		// 用颜色框标记出已被预取的链接。如不需要可注释掉下面两行。
-		// next.link.style.border = 'solid 3px ' + borderColor;
-		// next.link.title = next.link.title.replace(/【.*】/,'') + '【' +
-		// statusTip + '】';
-		// }
-		// catch (e) {
-		// }
-		
-		// 给所有被预取的链接添加事件。点击该连接时将 iframe 中已经预取到的内容直接覆盖 top 页面，达到迅速打开页面的效果。
-		
-		for (var j = 0; j < nextlinks.snapshotLength; j++) {
-		if(reg){  // 是否注册,防止注册多个EventListener
-			nextlinks.snapshotItem(j).addEventListener('click', function(event){
-			onClick(event)
-			}, false)
-		}
-		
-		if (coloredlink) {
-			try {
-			nextlinks.snapshotItem(j).style.border = 'solid 3px ' + borderColor;
-			nextlinks.snapshotItem(j).title = nextlinks.snapshotItem(j).title.replace(/【.*】/,'') + '【' + statusTip + '】';
-			} catch (e) {
-			}
-		}
-		
-		}
-	}
-
-	}
-	
-	
-	// 点击事件处理
-	function onClick(event){
-	var i_html = document.getElementById('pfnext_if').contentDocument.getElementsByTagName('body')[0];
-	var html = document.getElementsByTagName('body')[0];
-	if (!html.innerHTML.length || !i_html.innerHTML.length) 
-		return;
-	// 增加一个新历史记录
-	if(historyenable) {
-		newhistory = true;
-		var history = new Object;
-		history.url = location.href;
-		history.html = html.innerHTML;
-		historyManage.addCase(history);
-	}
-	html.innerHTML = i_html.innerHTML;
-	currenturl = next.link;  // 计算实际URL
-	
-	window.scrollTo(0, 0);
-	delete ap;
-	cleanVars();
-	ap = (iconenable) ? (new IconHelper()):'';
-	watch_scroll();
-	event.stopPropagation();
-	event.preventDefault();
-	}
-	
-	function matchNode(xpath, root){
-	var type = XPathResult.ORDERED_NODE_SNAPSHOT_TYPE;
-	var doc = root ? root.evaluate ? root : root.ownerDocument : document;
-	return doc.evaluate(xpath, root || doc, null, type, null);
-}
-	
-	var innerHeight = window.innerHeight ? window.innerHeight : document.body.clientHeight;
-	function watch_scroll(){
-	if (!prefetched && ap.state != 'disable') {
-		if (!checked) {
-			checked = true;
-			checkLinks();
-		}
-		if (next.found && next.link.href) {
-			nextlinks = matchNode('//a[@href="' + next.link.getAttribute('href') + '"]'); 
-			var scrollTop = window.scrollY;
-			// var scrollHeight = document.body.scrollHeight;
-			var scrollHeight = getTopest(nextlinks);
-			
-			if (scrollHeight - innerHeight - scrollTop < innerHeight * leftpages || scrollHeight - innerHeight - scrollTop < scrollHeight * scrollpos) {
-			// 如果剩余页面高度小于 leftpages * 窗口高度，则开始预取下一页
-			prefetched = true;
-			
-			var prefetchContainerDiv = document.createElement('div');
-			prefetchContainerDiv.setAttribute('style', 'position: fixed; top:0; left:0; opacity: 0;z-index: -10;');
-			document.body.appendChild(prefetchContainerDiv);
-			
-			var prefetchIframe = document.createElement('iframe');
-			prefetchIframe.setAttribute('id', 'pfnext_if');
-			prefetchIframe.setAttribute('style', 'display: none;');
-			prefetchIframe.setAttribute('style', 'visibility: hidden;');
-			prefetchIframe.setAttribute('src', String(next.link.href));
-			prefetchContainerDiv.appendChild(prefetchIframe);
-			
-			// 注册地址栏变化的监听函数
-			if(historyenable){
-				historyManage.run(historyHandle);
-			}
-			
-			
-			if (StatusInTitle) {
-				document.title += '【' + TEXT.prefetching + '】';
-			}
-			if(iconenable) ap.set('loading');
-			
-			var prefetchIframe = document.getElementById('pfnext_if');
-			
-			// 当框架加载完成，改变标题栏提示，并给相应链接添加事件。
-			// 结构已加载完毕
-			prefetchIframe.contentWindow.addEventListener('DOMContentLoaded', function(event){
-				onIframeLoaded(event,true,TEXT.textdone,TEXT.textdonetip,COLOR.textdone);
-				readyfornext = true;
-				if(iconenable) ap.set('textdone');
-			}, false)
-			// 完全加载完毕
-			prefetchIframe.contentWindow.addEventListener('load', function(event){
-				onIframeLoaded(event,false,TEXT.done,TEXT.donetip,COLOR.done)
-				if(iconenable) ap.set('done');
-			}, false)
-			// 加载错误
-			prefetchIframe.contentWindow.addEventListener('OnError', function(event){
-				 onIframeLoaded(event,false,TEXT.error+event,TEXT.errortip,COLOR.error)
-				 if(iconenable) ap.set('error');
-			}, false)
-			
-			
-			
-			}
-		} else {
-			if(iconenable) ap.set('not_found');
-		}
-	}
-	}
-
-	
-/*
- * ******************************* 前进后退修正部分 *******************************
- */
-
-var historyManage = (function(){
-		var cases = new Array(historymax);  // 浏览历史循环数组
-		var casesIndex = 0; // 循环数组索引
-		var lastHash = 0;  // 最后锚
-		var getHash = function(){ // 获得当前锚
-		var i, href;
-		href = top.location.href;
-		i = href.indexOf("#");
-		return i >= 0?href.substr(i+1):0;
-		};
-		return {
-		// 增加一个历史项
-		addCase:function(caseData){// alert('case
-						// add!\n'+'caseIndex:'+casesIndex+'\nurl:'+caseData.url);
-			cases[casesIndex] = caseData;
-			if(++casesIndex>=historymax) casesIndex = 0;
-			location.hash = casesIndex
-		},
-		// 增加最后一个历史项(用于正确前进)
-		pushCase:function(caseData){// alert('case
-						// pushed!\n'+'caseIndex:'+casesIndex+'\nurl:'+caseData.url);
-			cases[casesIndex] = caseData;
-		},
-		// 监听函数
-		run:function(fn){
-			if(getHash()!="")location.hash=getHash();
-			setInterval(function(){
-			var newHash = getHash();
-			if(lastHash!=newHash){// alert('Hash
-						// changed!'+'\nbefore:'+lastHash+'\nafter:'+newHash);
-				fn(cases[newHash]);
-				lastHash = newHash;
-			}
-			},intervaltime);
-		}
-		};
-	})();
-
-	// 锚号变化处理
-	function historyHandle(history){
-	// 浏览历史记录变更(前进后退)
-	checkLastPage();
-	if(!newhistory){// alert('history
-			// changed!\nhash:'+location.hash+'\nurl:'+history.url);
-		document.getElementsByTagName('body')[0].innerHTML=history.html;
-		currenturl = history.url;
-		window.scrollTo(0, 0);
-		// 是否前进至了最后一个记录,重新预读
-		if (currenturl==lasthistory.url){
-		delete ap;
-		cleanVars();
-		ap = (iconenable) ? (new IconHelper()):'';
-		watch_scroll();
-		}
-	}
-	newhistory = false;   
-	}
-	
-	// 处理最后一个网页(用于正确前进)
-	function checkLastPage(){
-	if(!newhistory&&!lasthistorypushed) {
-		historyManage.pushCase(lasthistory);
-		lasthistorypushed = true;
-	}else if(newhistory){
-		lasthistory.url = location;
-		lasthistory.html = document.getElementsByTagName('body')[0].innerHTML;
-		lasthistorypushed = false;
 	}
 	}
 	
